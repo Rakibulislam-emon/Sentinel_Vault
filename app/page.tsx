@@ -48,17 +48,30 @@ export default function HomePage() {
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
-      <header className="border-b border-border">
+      <header className="border-b border-border sticky top-0 bg-background/95 backdrop-blur z-50">
         <div className="container mx-auto px-4 py-4 flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <Shield className="h-8 w-8 text-primary" />
-            <span className="text-xl font-bold">Sentinel Vault</span>
+            <Shield className="h-6 w-6 md:h-8 md:w-8 text-primary" />
+            <span className="text-lg md:text-xl font-bold">Sentinel Vault</span>
           </div>
-          <div className="flex items-center gap-4">
-            <Button variant="ghost" onClick={() => router.push("/login")}>
+          <div className="flex items-center gap-2 md:gap-4">
+            <Button
+              variant="ghost"
+              size="sm"
+              className="hidden sm:inline-flex"
+              onClick={() => router.push("/login")}
+            >
               Sign In
             </Button>
-            <Button onClick={() => router.push("/register")}>
+            <Button
+              variant="ghost"
+              size="sm"
+              className="sm:hidden"
+              onClick={() => router.push("/login")}
+            >
+              Login
+            </Button>
+            <Button size="sm" onClick={() => router.push("/register")}>
               Get Started
             </Button>
           </div>
@@ -66,25 +79,30 @@ export default function HomePage() {
       </header>
 
       {/* Hero Section */}
-      <section className="py-20 px-4">
+      <section className="py-12 md:py-20 px-4">
         <div className="container mx-auto text-center max-w-4xl">
-          <h1 className="text-5xl font-bold tracking-tight mb-6">
+          <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight mb-6">
             The Password Manager That
-            <span className="text-primary"> Knows Nothing</span>
+            <span className="text-primary block sm:inline"> Knows Nothing</span>
           </h1>
-          <p className="text-xl text-muted-foreground mb-8 max-w-2xl mx-auto">
+          <p className="text-lg md:text-xl text-muted-foreground mb-8 max-w-2xl mx-auto">
             Sentinel Vault implements true zero-knowledge encryption. All
             cryptographic operations happen in your browser. Your passwords are
             yours alone.
           </p>
-          <div className="flex items-center justify-center gap-4">
-            <Button size="lg" onClick={() => router.push("/register")}>
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-4 w-full max-w-xs sm:max-w-none mx-auto">
+            <Button
+              size="lg"
+              className="w-full sm:w-auto"
+              onClick={() => router.push("/register")}
+            >
               Create Free Account
               <ArrowRight className="ml-2 h-5 w-5" />
             </Button>
             <Button
               size="lg"
               variant="outline"
+              className="w-full sm:w-auto"
               onClick={() => router.push("/login")}
             >
               Already have an account?

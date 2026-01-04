@@ -10,6 +10,8 @@ import {
   EyeOff,
   AlertTriangle,
   CheckCircle2,
+  Mail,
+  ArrowLeft,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -36,11 +38,12 @@ export default function RegisterPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [step, setStep] = useState<"credentials" | "warning" | "processing">(
-    "credentials"
-  );
+  const [step, setStep] = useState<
+    "credentials" | "warning" | "processing" | "success"
+  >("credentials");
   const [confirmedUnderstand, setConfirmedUnderstand] = useState(false);
   const [confirmationText, setConfirmationText] = useState("");
+  const [successEmail, setSuccessEmail] = useState("");
 
   const passwordStrength = estimatePasswordStrength(password);
   const strengthColor =
@@ -74,11 +77,7 @@ export default function RegisterPage() {
   };
 
   const handleRegister = async () => {
-    if (!confirmedUnderstand) {
-      setError("Please confirm that you understand by typing 'I UNDERSTAND'");
-      return;
-    }
-
+    // The button disabled state handles !confirmedUnderstand
     setStep("processing");
     setLoading(true);
     setError(null);
@@ -88,32 +87,30 @@ export default function RegisterPage() {
       const salt = generateSalt();
       const { verificationKey } = await deriveKeys(password, salt);
 
-      // Create Supabase auth user with the ACTUAL master password
-      // This allows login to work with the same password
-      const { data: authData, error: authError } = await supabase.auth.signUp({
+      // Create Supabase auth user with the verification key as password
+      // Include email redirect for confirmation
+      const { data, error: authError } = await supabase.auth.signUp({
         email,
-        password, // Use the actual master password, not the verification key
+        password: verificationKey.slice(0, 60), // Use part of hash as password
+        options: {
+          emailRedirectTo: `${window.location.origin}/auth/callback`,
+          data: {
+            kdf_salt: salt,
+          },
+        },
       });
 
       if (authError) throw authError;
 
-      if (!authData.user) throw new Error("Failed to create user account");
-
-      // Create profile with salt and verifier (upsert to handle if trigger created it)
-      const { error: profileError } = await supabase.from("profiles").upsert({
-        id: authData.user.id,
-        email,
-        kdf_salt: salt,
-        verifier_hash: verificationKey,
-        auto_lock_minutes: 5,
-        clear_clipboard_seconds: 30,
-        created_at: new Date().toISOString(), // Ensure created_at is set for new rows
-      });
-
-      if (profileError) throw profileError;
-
-      // Redirect to login
-      router.push("/login?registered=true");
+      // Check if user was created successfully
+      if (data.user) {
+        // When email confirmation is enabled, data.session will be null
+        // This is expected behavior - the user needs to confirm their email
+        setSuccessEmail(email);
+        setStep("success");
+      } else {
+        throw new Error("Failed to create user");
+      }
     } catch (err: unknown) {
       const errorMessage =
         err instanceof Error ? err.message : "Registration failed";
@@ -123,6 +120,68 @@ export default function RegisterPage() {
       setLoading(false);
     }
   };
+
+  // Success state - Email confirmation required
+  if (step === "success") {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background p-4">
+        <Card className="w-full max-w-lg">
+          <CardHeader className="text-center">
+            <div className="mx-auto mb-4 w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center">
+              <Mail className="w-8 h-8 text-primary" />
+            </div>
+            <CardTitle className="text-2xl">Check your email</CardTitle>
+            <CardDescription>
+              We have sent a confirmation link to your email address
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="text-center">
+              <p className="text-sm text-muted-foreground mb-4">
+                <span className="font-medium text-foreground">
+                  {successEmail}
+                </span>
+              </p>
+              <div className="bg-muted/50 rounded-lg p-4 text-sm text-muted-foreground">
+                <p className="mb-2">
+                  <strong>What&apos;s next?</strong>
+                </p>
+                <ol className="text-left space-y-2 list-decimal list-inside">
+                  <li>Click the confirmation link in the email we sent you</li>
+                  <li>After confirming, you can log in to your vault</li>
+                  <li>
+                    During first login, you&apos;ll set up your encryption keys
+                  </li>
+                </ol>
+              </div>
+            </div>
+
+            {error && (
+              <div className="p-3 text-sm text-destructive bg-destructive/10 rounded-md">
+                {error}
+              </div>
+            )}
+
+            <div className="flex gap-4">
+              <Button
+                variant="outline"
+                className="flex-1"
+                onClick={() => router.push("/login")}
+              >
+                <ArrowLeft className="mr-2 h-4 w-4" />
+                Go to Login
+              </Button>
+            </div>
+
+            <p className="text-xs text-center text-muted-foreground">
+              Didn&apos;t receive the email? Check your spam folder or try
+              registering again.
+            </p>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
 
   if (step === "warning") {
     return (
@@ -163,8 +222,9 @@ export default function RegisterPage() {
               <Input
                 value={confirmationText}
                 onChange={(e) => {
-                  setConfirmationText(e.target.value);
-                  setConfirmedUnderstand(e.target.value === "I UNDERSTAND");
+                  const text = e.target.value;
+                  setConfirmationText(text);
+                  setConfirmedUnderstand(text === "I UNDERSTAND");
                 }}
                 placeholder="I UNDERSTAND"
                 className="text-center"

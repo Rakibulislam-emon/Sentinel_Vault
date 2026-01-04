@@ -38,18 +38,67 @@ export default function LoginPage() {
     setLoading(true);
     setError(null);
 
+    console.log("Starting login process...");
+
     try {
-      const { error } = await supabase.auth.signInWithPassword({
+      // 1. Get the user's salt
+      console.log("Fetching user salt for:", email);
+      const { data: salt, error: saltError } = await supabase.rpc(
+        "get_user_salt",
+        {
+          email_input: email,
+        }
+      );
+
+      if (saltError) {
+        console.error("Error fetching salt:", saltError);
+        throw new Error("Invalid login credentials");
+      }
+
+      if (!salt) {
+        console.error("No salt found for user");
+        throw new Error("Invalid login credentials");
+      }
+
+      console.log("Salt fetched successfully. Deriving keys...");
+
+      // 2. Derive the key using the password and salt
+      // Ensure we are importing the module correctly
+      const cryptoModule = await import("@/lib/crypto");
+      console.log("Crypto module loaded");
+
+      const { verificationKey } = await cryptoModule.deriveKeys(password, salt);
+      console.log("Key derived successfully");
+
+      // 3. Sign in using the verification key
+      console.log("Attempting sign in with derived key...");
+      const { error: signInError } = await supabase.auth.signInWithPassword({
         email,
-        password,
+        password: verificationKey.slice(0, 60),
       });
 
-      if (error) throw error;
+      if (signInError) {
+        console.error("Sign in error:", signInError);
+        throw signInError;
+      }
 
+      console.log("Sign in successful, redirecting to vault...");
       router.push("/vault");
     } catch (err: unknown) {
+      console.error("Login exception:", err);
       const errorMessage = err instanceof Error ? err.message : "Login failed";
-      setError(errorMessage);
+      // Don't expose specific RLS/RPC errors to user
+      if (
+        errorMessage.includes("function") ||
+        errorMessage.includes("RPC") ||
+        errorMessage.includes("metadata")
+      ) {
+        setError(
+          "System error: Database setup incomplete. Please contact support."
+        );
+      } else {
+        setError(errorMessage);
+      }
     } finally {
       setLoading(false);
     }
