@@ -1,0 +1,28 @@
+
+> sentinel-vault@1.0.0 lint
+> next lint
+
+
+./app/page.tsx
+3:10  Error: 'useState' is defined but never used.  @typescript-eslint/no-unused-vars
+7:16  Error: 'CardContent' is defined but never used.  @typescript-eslint/no-unused-vars
+131:25  Error: `"` can be escaped with `&quot;`, `&ldquo;`, `&#34;`, `&rdquo;`.  react/no-unescaped-entities
+131:41  Error: `"` can be escaped with `&quot;`, `&ldquo;`, `&#34;`, `&rdquo;`.  react/no-unescaped-entities
+
+./app/vault/page.tsx
+11:3  Error: 'Settings' is defined but never used.  @typescript-eslint/no-unused-vars
+21:3  Error: 'X' is defined but never used.  @typescript-eslint/no-unused-vars
+23:3  Error: 'Clock' is defined but never used.  @typescript-eslint/no-unused-vars
+49:3  Error: 'estimatePasswordStrength' is defined but never used.  @typescript-eslint/no-unused-vars
+61:5  Error: 'salt' is assigned a value but never used.  @typescript-eslint/no-unused-vars
+63:5  Error: 'categories' is assigned a value but never used.  @typescript-eslint/no-unused-vars
+89:10  Error: 'idleTime' is assigned a value but never used.  @typescript-eslint/no-unused-vars
+119:5  Error: 'idleTimer' is never reassigned. Use 'const' instead.  prefer-const
+136:6  Warning: React Hook useEffect has a missing dependency: 'handleLock'. Either include it or remove the dependency array.  react-hooks/exhaustive-deps
+199:18  Error: 'err' is defined but never used.  @typescript-eslint/no-unused-vars
+688:10  Error: 'generatedPassword' is assigned a value but never used.  @typescript-eslint/no-unused-vars
+
+./components/ui/input.tsx
+4:18  Error: An interface declaring no members is equivalent to its supertype.  @typescript-eslint/no-empty-object-type
+
+info  - Need to disable some ESLint rules? Learn more here: https://nextjs.org/docs/app/api-reference/config/eslint#disabling-rules

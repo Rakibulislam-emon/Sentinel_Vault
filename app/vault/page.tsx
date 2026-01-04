@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
 import { useRouter } from "next/navigation";
 import {
   Shield,
@@ -8,7 +8,6 @@ import {
   Unlock,
   Plus,
   Search,
-  Settings,
   LogOut,
   Eye,
   EyeOff,
@@ -18,9 +17,7 @@ import {
   Star,
   StarOff,
   Loader2,
-  X,
   Check,
-  Clock,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -46,7 +43,6 @@ import {
   encryptVaultItem,
   decryptVaultItem,
   generatePassword,
-  estimatePasswordStrength,
   VaultItemPayload,
 } from "@/lib/crypto";
 
@@ -58,9 +54,7 @@ export default function VaultPage() {
     email,
     isUnlocked,
     encryptionKey,
-    salt,
     items,
-    categories,
     setAuthenticated,
     setUnlocked,
     setVaultData,
@@ -86,8 +80,13 @@ export default function VaultPage() {
     Record<string, string>
   >({});
   const [copyFeedback, setCopyFeedback] = useState<Record<string, boolean>>({});
-  const [idleTime, setIdleTime] = useState(0);
   const [autoLockMinutes] = useState(5);
+  const idleTimeRef = useRef(0);
+
+  const handleLock = useCallback(() => {
+    lockVault();
+    setRevealedPasswords({});
+  }, [lockVault]);
 
   // Check authentication on mount
   useEffect(() => {
@@ -108,23 +107,21 @@ export default function VaultPage() {
   useEffect(() => {
     if (!isUnlocked) return;
 
-    let idleTimer: NodeJS.Timeout;
-    const resetTimer = () => setIdleTime(0);
+    const resetTimer = () => {
+      idleTimeRef.current = 0;
+    };
 
     const events = ["mousemove", "keydown", "click", "scroll"];
     events.forEach((event) => {
       window.addEventListener(event, resetTimer);
     });
 
-    idleTimer = setInterval(() => {
-      setIdleTime((prev) => {
-        const newTime = prev + 1;
-        if (newTime >= autoLockMinutes * 60) {
-          handleLock();
-          return 0;
-        }
-        return newTime;
-      });
+    const idleTimer = setInterval(() => {
+      idleTimeRef.current += 1;
+      if (idleTimeRef.current >= autoLockMinutes * 60) {
+        handleLock();
+        idleTimeRef.current = 0;
+      }
     }, 1000);
 
     return () => {
@@ -133,7 +130,7 @@ export default function VaultPage() {
         window.removeEventListener(event, resetTimer);
       });
     };
-  }, [isUnlocked, autoLockMinutes]);
+  }, [isUnlocked, autoLockMinutes, handleLock]);
 
   // Privacy blur on window blur
   useEffect(() => {
@@ -196,7 +193,7 @@ export default function VaultPage() {
             url: payload.url,
             notes: payload.notes,
           });
-        } catch (err) {
+        } catch {
           console.error("Failed to decrypt item:", item.id);
         }
       }
@@ -211,11 +208,6 @@ export default function VaultPage() {
       setLoading(false);
     }
   };
-
-  const handleLock = useCallback(() => {
-    lockVault();
-    setRevealedPasswords({});
-  }, [lockVault]);
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
@@ -685,7 +677,6 @@ function AddItemDialog({
   const [url, setUrl] = useState("");
   const [notes, setNotes] = useState("");
   const [showPassword, setShowPassword] = useState(false);
-  const [generatedPassword, setGeneratedPassword] = useState("");
   const [loading, setLoading] = useState(false);
 
   const handleGeneratePassword = () => {
@@ -696,7 +687,6 @@ function AddItemDialog({
       includeNumbers: true,
       includeSymbols: true,
     });
-    setGeneratedPassword(newPassword);
     setPassword(newPassword);
   };
 
@@ -711,7 +701,6 @@ function AddItemDialog({
       setPassword("");
       setUrl("");
       setNotes("");
-      setGeneratedPassword("");
     } finally {
       setLoading(false);
     }

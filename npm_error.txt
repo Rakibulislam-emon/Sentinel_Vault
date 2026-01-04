@@ -1,0 +1,9 @@
+npm notice Access token expired or revoked. Please try logging in again.
+npm error code E404
+npm error 404 Not Found - GET https://registry.npmjs.org/@next%2feslint-plugin - Not found
+npm error 404
+npm error 404  '@next/eslint-plugin@*' is not in this registry.
+npm error 404
+npm error 404 Note that you can also install from a
+npm error 404 tarball, folder, http url, or git url.
+npm error A complete log of this run can be found in: C:\Users\UseR\AppData\Local\npm-cache\_logs\2026-01-04T18_25_35_260Z-debug-0.log

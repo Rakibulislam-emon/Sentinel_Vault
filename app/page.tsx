@@ -1,10 +1,14 @@
 "use client";
 
-import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Shield, Lock, Key, ArrowRight, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 
 export default function HomePage() {
   const router = useRouter();
@@ -13,17 +17,20 @@ export default function HomePage() {
     {
       icon: Lock,
       title: "Zero-Knowledge Encryption",
-      description: "Your passwords are encrypted client-side. We never see your master password or unencrypted data.",
+      description:
+        "Your passwords are encrypted client-side. We never see your master password or unencrypted data.",
     },
     {
       icon: Shield,
       title: "Military-Grade Security",
-      description: "AES-256-GCM encryption with PBKDF2 key derivation using 600,000 iterations.",
+      description:
+        "AES-256-GCM encryption with PBKDF2 key derivation using 600,000 iterations.",
     },
     {
       icon: Key,
       title: "Complete Control",
-      description: "Your data stays on your device until you choose to sync. No account recovery means true privacy.",
+      description:
+        "Your data stays on your device until you choose to sync. No account recovery means true privacy.",
     },
   ];
 
@@ -66,16 +73,20 @@ export default function HomePage() {
             <span className="text-primary"> Knows Nothing</span>
           </h1>
           <p className="text-xl text-muted-foreground mb-8 max-w-2xl mx-auto">
-            Sentinel Vault implements true zero-knowledge encryption. 
-            All cryptographic operations happen in your browser. 
-            Your passwords are yours alone.
+            Sentinel Vault implements true zero-knowledge encryption. All
+            cryptographic operations happen in your browser. Your passwords are
+            yours alone.
           </p>
           <div className="flex items-center justify-center gap-4">
             <Button size="lg" onClick={() => router.push("/register")}>
               Create Free Account
               <ArrowRight className="ml-2 h-5 w-5" />
             </Button>
-            <Button size="lg" variant="outline" onClick={() => router.push("/login")}>
+            <Button
+              size="lg"
+              variant="outline"
+              onClick={() => router.push("/login")}
+            >
               Already have an account?
             </Button>
           </div>
@@ -122,17 +133,17 @@ export default function HomePage() {
       {/* Security Warning Section */}
       <section className="py-16 px-4 bg-destructive/10">
         <div className="container mx-auto max-w-3xl text-center">
-          <h2 className="text-2xl font-bold mb-4">
-            Important Security Note
-          </h2>
+          <h2 className="text-2xl font-bold mb-4">Important Security Note</h2>
           <p className="text-muted-foreground mb-6">
-            Because Sentinel Vault uses zero-knowledge encryption, we cannot 
-            reset your password or recover your data if you lose your master password. 
-            There is no "forgot password" feature - by design.
+            Because Sentinel Vault uses zero-knowledge encryption, we cannot
+            reset your password or recover your data if you lose your master
+            password. There is no &quot;forgot password&quot; feature - by
+            design.
           </p>
           <p className="text-sm text-muted-foreground">
-            Store your master password securely. Consider using a separate password manager 
-            or physical secure storage for your Sentinel Vault master password.
+            Store your master password securely. Consider using a separate
+            password manager or physical secure storage for your Sentinel Vault
+            master password.
           </p>
         </div>
       </section>

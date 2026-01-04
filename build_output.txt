@@ -1,0 +1,20 @@
+
+> sentinel-vault@1.0.0 build
+> next build
+
+   ▲ Next.js 15.1.3
+   - Environments: .env.local
+   - Experiments (use with caution):
+     · turbo
+
+   Creating an optimized production build ...
+ ✓ Compiled successfully
+   Linting and checking validity of types ...
+
+Failed to compile.
+
+./app/vault/page.tsx
+196:18  Error: '_err' is defined but never used.  @typescript-eslint/no-unused-vars
+680:10  Error: 'generatedPassword' is assigned a value but never used.  @typescript-eslint/no-unused-vars
+
+info  - Need to disable some ESLint rules? Learn more here: https://nextjs.org/docs/app/api-reference/config/eslint#disabling-rules

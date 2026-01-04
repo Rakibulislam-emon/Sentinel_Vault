@@ -1,0 +1,31 @@
+
+> sentinel-vault@1.0.0 lint
+> eslint .
+
+(node:25088) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///E:/sentinel-vault/sentinel-vault/eslint.config.js?mtime=1767551153159 is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to E:\sentinel-vault\sentinel-vault\package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+
+Oops! Something went wrong! :(
+
+ESLint: 9.17.0
+
+TypeError: Converting circular structure to JSON
+    --> starting at object with constructor 'Object'
+    |     property 'configs' -> object with constructor 'Object'
+    |     property 'flat' -> object with constructor 'Object'
+    |     ...
+    |     property 'plugins' -> object with constructor 'Object'
+    --- property 'react' closes the circle
+Referenced from: 
+    at JSON.stringify (<anonymous>)
+    at file:///E:/sentinel-vault/sentinel-vault/node_modules/@eslint/eslintrc/lib/shared/config-validator.js:308:45
+    at Array.map (<anonymous>)
+    at ConfigValidator.formatErrors (file:///E:/sentinel-vault/sentinel-vault/node_modules/@eslint/eslintrc/lib/shared/config-validator.js:299:23)
+    at ConfigValidator.validateConfigSchema (file:///E:/sentinel-vault/sentinel-vault/node_modules/@eslint/eslintrc/lib/shared/config-validator.js:330:84)
+    at ConfigArrayFactory._normalizeConfigData (file:///E:/sentinel-vault/sentinel-vault/node_modules/@eslint/eslintrc/lib/config-array-factory.js:676:19)
+    at ConfigArrayFactory._loadConfigData (file:///E:/sentinel-vault/sentinel-vault/node_modules/@eslint/eslintrc/lib/config-array-factory.js:641:21)
+    at ConfigArrayFactory._loadExtendedShareableConfig (file:///E:/sentinel-vault/sentinel-vault/node_modules/@eslint/eslintrc/lib/config-array-factory.js:946:21)
+    at ConfigArrayFactory._loadExtends (file:///E:/sentinel-vault/sentinel-vault/node_modules/@eslint/eslintrc/lib/config-array-factory.js:814:25)
+    at ConfigArrayFactory._normalizeObjectConfigDataBody (file:///E:/sentinel-vault/sentinel-vault/node_modules/@eslint/eslintrc/lib/config-array-factory.js:752:25)
