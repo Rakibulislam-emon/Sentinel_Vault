@@ -18,6 +18,7 @@ import {
   StarOff,
   Loader2,
   Check,
+  Settings,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -35,6 +36,7 @@ import {
   DialogHeader,
   DialogTitle,
   DialogFooter,
+  DialogDescription,
 } from "@/components/ui/dialog";
 import { useVaultStore, DecryptedVaultItem } from "@/store/vaultStore";
 import { supabase, getProfile, getVaultItems } from "@/lib/supabase";
@@ -42,9 +44,11 @@ import {
   deriveEncryptionKey,
   encryptVaultItem,
   decryptVaultItem,
-  generatePassword,
   VaultItemPayload,
 } from "@/lib/crypto";
+import AddItemDialog from "@/components/vault/AddItemDialog";
+import EditItemDialog from "@/components/vault/EditItemDialog";
+import SettingsDialog from "@/components/vault/SettingsDialog";
 
 export default function VaultPage() {
   const router = useRouter();
@@ -73,6 +77,7 @@ export default function VaultPage() {
     null
   );
   const [showAddDialog, setShowAddDialog] = useState(false);
+  const [showSettingsDialog, setShowSettingsDialog] = useState(false);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [showEditDialog, setShowEditDialog] = useState(false);
   const [itemToDelete, setItemToDelete] = useState<string | null>(null);
@@ -377,21 +382,42 @@ export default function VaultPage() {
       {/* Header */}
       <header className="border-b border-border sticky top-0 bg-background/95 backdrop-blur z-10">
         <div className="container mx-auto px-4 py-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4">
-              <Shield className="h-8 w-8 text-primary" />
-              <div>
-                <h1 className="font-bold">Sentinel Vault</h1>
-                <p className="text-xs text-muted-foreground">{email}</p>
+          <div className="flex items-center justify-between gap-4">
+            <div className="flex items-center gap-3">
+              <Shield className="h-8 w-8 text-primary flex-shrink-0" />
+              <div className="overflow-hidden">
+                <h1 className="font-bold whitespace-nowrap">Sentinel Vault</h1>
+                <p className="text-xs text-muted-foreground hidden sm:block truncate max-w-[150px]">
+                  {email}
+                </p>
               </div>
             </div>
 
-            <div className="flex items-center gap-2">
-              <Button variant="outline" size="sm" onClick={handleLock}>
-                <Lock className="h-4 w-4 mr-2" />
-                Lock
+            <div className="flex items-center gap-2 flex-shrink-0">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setShowSettingsDialog(true)}
+                className="px-2 sm:px-4"
+              >
+                <Settings className="h-4 w-4 sm:mr-2" />
+                <span className="hidden sm:inline">Settings</span>
               </Button>
-              <Button variant="outline" size="sm" onClick={handleLogout}>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleLock}
+                className="px-2 sm:px-4"
+              >
+                <Lock className="h-4 w-4 sm:mr-2" />
+                <span className="hidden sm:inline">Lock</span>
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleLogout}
+                className="px-2 sm:px-3"
+              >
                 <LogOut className="h-4 w-4" />
               </Button>
             </div>
@@ -586,7 +612,7 @@ export default function VaultPage() {
               title: data.title,
               ciphertext,
               iv,
-              auth_tag: "", // Will be computed during encryption in full implementation
+              auth_tag: "",
             });
 
           if (insertError) throw insertError;
@@ -621,16 +647,24 @@ export default function VaultPage() {
         item={selectedItem}
       />
 
+      {/* Settings Dialog */}
+      <SettingsDialog
+        open={showSettingsDialog}
+        onOpenChange={setShowSettingsDialog}
+        userId={userId}
+        logout={logout}
+      />
+
       {/* Delete Confirmation Dialog */}
       <Dialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Delete Item</DialogTitle>
+            <DialogDescription>
+              Are you sure you want to delete this item? This action cannot be
+              undone.
+            </DialogDescription>
           </DialogHeader>
-          <p className="text-muted-foreground">
-            Are you sure you want to delete this item? This action cannot be
-            undone.
-          </p>
           <DialogFooter>
             <Button
               variant="outline"
@@ -658,306 +692,5 @@ export default function VaultPage() {
         </DialogContent>
       </Dialog>
     </div>
-  );
-}
-
-// Add Item Dialog Component
-function AddItemDialog({
-  open,
-  onOpenChange,
-  onAdd,
-}: {
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
-  onAdd: (data: VaultItemPayload & { title: string }) => void;
-}) {
-  const [title, setTitle] = useState("");
-  const [username, setUsername] = useState("");
-  const [password, setPassword] = useState("");
-  const [url, setUrl] = useState("");
-  const [notes, setNotes] = useState("");
-  const [showPassword, setShowPassword] = useState(false);
-  const [loading, setLoading] = useState(false);
-
-  const handleGeneratePassword = () => {
-    const newPassword = generatePassword({
-      length: 20,
-      includeUppercase: true,
-      includeLowercase: true,
-      includeNumbers: true,
-      includeSymbols: true,
-    });
-    setPassword(newPassword);
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setLoading(true);
-    try {
-      await onAdd({ title, username, password, url, notes });
-      // Reset form
-      setTitle("");
-      setUsername("");
-      setPassword("");
-      setUrl("");
-      setNotes("");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-md">
-        <DialogHeader>
-          <DialogTitle>Add New Item</DialogTitle>
-        </DialogHeader>
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="space-y-2">
-            <Label htmlFor="itemTitle">Title</Label>
-            <Input
-              id="itemTitle"
-              placeholder="e.g., Google Account"
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-              required
-            />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="itemUsername">Username</Label>
-            <Input
-              id="itemUsername"
-              placeholder="you@example.com"
-              value={username}
-              onChange={(e) => setUsername(e.target.value)}
-              required
-            />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="itemPassword">Password</Label>
-            <div className="flex gap-2">
-              <div className="relative flex-1">
-                <Input
-                  id="itemPassword"
-                  type={showPassword ? "text" : "password"}
-                  placeholder="Enter or generate password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  required
-                />
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="icon"
-                  className="absolute right-0 top-0 h-full"
-                  onClick={() => setShowPassword(!showPassword)}
-                >
-                  {showPassword ? (
-                    <EyeOff className="h-4 w-4" />
-                  ) : (
-                    <Eye className="h-4 w-4" />
-                  )}
-                </Button>
-              </div>
-              <Button
-                type="button"
-                variant="outline"
-                onClick={handleGeneratePassword}
-              >
-                Generate
-              </Button>
-            </div>
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="itemUrl">URL (optional)</Label>
-            <Input
-              id="itemUrl"
-              placeholder="https://example.com"
-              value={url}
-              onChange={(e) => setUrl(e.target.value)}
-            />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="itemNotes">Notes (optional)</Label>
-            <textarea
-              id="itemNotes"
-              className="flex min-h-[80px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
-              placeholder="Add any additional notes..."
-              value={notes}
-              onChange={(e) => setNotes(e.target.value)}
-            />
-          </div>
-          <div className="flex justify-end gap-2">
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => onOpenChange(false)}
-            >
-              Cancel
-            </Button>
-            <Button type="submit" disabled={loading}>
-              {loading ? "Saving..." : "Save"}
-            </Button>
-          </div>
-        </form>
-      </DialogContent>
-    </Dialog>
-  );
-}
-
-// Edit Item Dialog Component
-function EditItemDialog({
-  open,
-  onOpenChange,
-  onSave,
-  item,
-}: {
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
-  onSave: (data: VaultItemPayload & { title: string }) => void;
-  item: DecryptedVaultItem | null;
-}) {
-  const [title, setTitle] = useState("");
-  const [username, setUsername] = useState("");
-  const [password, setPassword] = useState("");
-  const [url, setUrl] = useState("");
-  const [notes, setNotes] = useState("");
-  const [showPassword, setShowPassword] = useState(false);
-  const [generatedPassword, setGeneratedPassword] = useState("");
-  const [loading, setLoading] = useState(false);
-
-  // Load item data when dialog opens
-  useEffect(() => {
-    if (item && open) {
-      setTitle(item.title);
-      setUsername(item.username);
-      setPassword(item.password);
-      setUrl(item.url || "");
-      setNotes(item.notes || "");
-    }
-  }, [item, open]);
-
-  const handleGeneratePassword = () => {
-    const newPassword = generatePassword({
-      length: 20,
-      includeUppercase: true,
-      includeLowercase: true,
-      includeNumbers: true,
-      includeSymbols: true,
-    });
-    setGeneratedPassword(newPassword);
-    setPassword(newPassword);
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setLoading(true);
-    try {
-      await onSave({ title, username, password, url, notes });
-      onOpenChange(false);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  if (!item) return null;
-
-  return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-md">
-        <DialogHeader>
-          <DialogTitle>Edit Item</DialogTitle>
-        </DialogHeader>
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="space-y-2">
-            <Label htmlFor="edit-title">Title</Label>
-            <Input
-              id="edit-title"
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-              required
-            />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="edit-username">Username</Label>
-            <Input
-              id="edit-username"
-              value={username}
-              onChange={(e) => setUsername(e.target.value)}
-              required
-            />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="edit-password">Password</Label>
-            <div className="flex gap-2">
-              <div className="relative flex-1">
-                <Input
-                  id="edit-password"
-                  type={showPassword ? "text" : "password"}
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  required
-                />
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="icon"
-                  className="absolute right-0 top-0 h-full"
-                  onClick={() => setShowPassword(!showPassword)}
-                >
-                  {showPassword ? (
-                    <EyeOff className="h-4 w-4" />
-                  ) : (
-                    <Eye className="h-4 w-4" />
-                  )}
-                </Button>
-              </div>
-              <Button
-                type="button"
-                variant="outline"
-                onClick={handleGeneratePassword}
-              >
-                Generate
-              </Button>
-            </div>
-            {generatedPassword && (
-              <p className="text-xs text-muted-foreground mt-1">
-                Generated:{" "}
-                <span className="font-mono">{generatedPassword}</span>
-              </p>
-            )}
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="edit-url">URL (optional)</Label>
-            <Input
-              id="edit-url"
-              value={url}
-              onChange={(e) => setUrl(e.target.value)}
-            />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="edit-notes">Notes (optional)</Label>
-            <textarea
-              id="edit-notes"
-              className="flex min-h-[80px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
-              value={notes}
-              onChange={(e) => setNotes(e.target.value)}
-            />
-          </div>
-          <div className="flex justify-end gap-2">
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => onOpenChange(false)}
-            >
-              Cancel
-            </Button>
-            <Button type="submit" disabled={loading}>
-              {loading ? "Saving..." : "Save Changes"}
-            </Button>
-          </div>
-        </form>
-      </DialogContent>
-    </Dialog>
   );
 }
