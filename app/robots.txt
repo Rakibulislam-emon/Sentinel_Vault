@@ -1,0 +1,6 @@
+User-agent: *
+Allow: /
+Disallow: /vault
+Disallow: /auth/callback
+
+Sitemap: https://sentinel-bolt.vercel.app/sitemap.xml
