@@ -217,12 +217,6 @@ export default function SecurityLoader() {
             ))}
           </div>
 
-          {/* Scan Line */}
-          <motion.div
-            animate={{ top: ["-10%", "110%"] }}
-            transition={{ duration: 4, repeat: Infinity, ease: "linear" }}
-            className="absolute left-0 right-0 h-[2px] bg-emerald-500/30 shadow-[0_0_20px_rgba(16,185,129,0.5)] z-20 pointer-events-none"
-          />
         </motion.div>
       )}
     </AnimatePresence>
